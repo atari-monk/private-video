@@ -1,0 +1,30 @@
+{
+    "private-video": {
+        "path": "/home/atari-monk/atari-monk/project/private-video",
+        "folders": [
+            "frontend",
+            "frontend/css",
+            "frontend/js",
+            "backend",
+            "backend/src",
+            "config",
+            "scripts"
+        ],
+        "files": [
+            "frontend/index.html",
+            "frontend/css/style.css",
+            "frontend/js/app.js",
+            "frontend/js/webrtc.js",
+            "frontend/js/signaling.js",
+            "frontend/js/ui.js",
+            "backend/package.json",
+            "backend/src/server.js",
+            "backend/src/signaling.js",
+            "backend/src/session.js",
+            "config/.env.example",
+            "scripts/dev.sh",
+            "README.md",
+            ".gitignore"
+        ]
+    }
+}
