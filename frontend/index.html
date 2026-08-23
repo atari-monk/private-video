@@ -4,7 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Private Two-Person Video</title>
+    <meta name="description" content="Private two-person peer-to-peer video">
+    <title>Private Video</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -12,45 +13,71 @@
     <main>
         <section id="home" class="panel">
             <h1>Private Video</h1>
+            <p>Private peer-to-peer video and audio for two people.</p>
+
             <button id="createBtn">Create session</button>
             <button id="joinBtn">Join session</button>
 
             <div id="joinForm" hidden>
-                <input id="sessionInput" placeholder="Paste session link or token">
+                <input id="sessionInput" autocomplete="off" placeholder="Paste session link or token">
                 <button id="joinConfirmBtn">Join</button>
             </div>
 
-            <p id="error" class="error"></p>
+            <p id="error" class="error" role="alert"></p>
         </section>
 
         <section id="session" hidden>
             <header>
-                <span id="status">Connecting...</span>
-                <button id="copyBtn">Copy session link</button>
-                <button id="disconnectBtn">Disconnect</button>
+                <strong id="status">Starting...</strong>
+
+                <button id="copyBtn">
+                    Copy session link
+                </button>
+
+                <button id="disconnectBtn">
+                    Disconnect
+                </button>
             </header>
 
             <div id="videos">
                 <div class="video-box">
                     <video id="localVideo" autoplay muted playsinline></video>
-                    <button class="fullscreen" data-video="localVideo">Fullscreen</button>
+                    <button class="fullscreen" data-video="localVideo">
+                        Fullscreen
+                    </button>
                 </div>
+
                 <div class="video-box">
                     <video id="remoteVideo" autoplay playsinline></video>
-                    <button class="fullscreen" data-video="remoteVideo">Fullscreen</button>
+                    <button class="fullscreen" data-video="remoteVideo">
+                        Fullscreen
+                    </button>
                 </div>
             </div>
 
             <footer>
-                <button id="micBtn">Mute microphone</button>
-                <button id="cameraBtn">Disable camera</button>
+                <button id="micBtn">
+                    Mute microphone
+                </button>
+
+                <button id="cameraBtn">
+                    Disable camera
+                </button>
             </footer>
         </section>
     </main>
 
     <script>
+        /*
+         * For local development:
+         * http://localhost:3000
+         *
+         * For production:
+         * https://signal.example.com
+         */
         window.SIGNALING_URL = "http://localhost:3000";
     </script>
+
     <script src="js/signaling.js"></script>
     <script src="js/webrtc.js"></script>
     <script src="js/ui.js"></script>

@@ -1,2 +1,7 @@
 docs/prompt/prompt.md
 docs/prompt/temp.md
+node_modules/
+.env
+*.log
+.DS_Store
+npm-debug.log*
