@@ -8,8 +8,10 @@ const {
     status
 } = require("./session");
 
-const ALLOWED_ORIGIN =
-    process.env.FRONTEND_ORIGIN || "http://localhost:8080";
+const ALLOWED_ORIGINS = [
+    "http://localhost:8080",
+    "https://atari-monk.github.io"
+];
 
 const MAX_BODY = 256 * 1024;
 
@@ -18,11 +20,15 @@ const requests = new Map();
 const RATE_WINDOW = 60 * 1000;
 const RATE_LIMIT = 120;
 
-function cors(response) {
-    response.setHeader(
-        "Access-Control-Allow-Origin",
-        ALLOWED_ORIGIN
-    );
+function cors(request, response) {
+    const origin = request.headers.origin;
+
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        response.setHeader(
+            "Access-Control-Allow-Origin",
+            origin
+        );
+    }
 
     response.setHeader(
         "Access-Control-Allow-Headers",
@@ -62,8 +68,8 @@ function securityHeaders(response) {
     );
 }
 
-function json(response, status, data) {
-    cors(response);
+function json(request, response, status, data) {
+    cors(request, response);
     securityHeaders(response);
 
     response.writeHead(status, {
@@ -80,7 +86,7 @@ function json(response, status, data) {
 function allowedOrigin(request) {
     const origin = request.headers.origin;
 
-    return !origin || origin === ALLOWED_ORIGIN;
+    return !origin || ALLOWED_ORIGINS.includes(origin);
 }
 
 function rateLimited(request) {
@@ -155,11 +161,11 @@ function iceServers() {
 }
 
 async function handle(request, response, url) {
-    cors(response);
+    cors(request, response);
     securityHeaders(response);
 
     if (!allowedOrigin(request))
-        return json(response, 403, {
+        return json(request, response, 403, {
             error: "Origin not allowed"
         });
 
@@ -169,7 +175,7 @@ async function handle(request, response, url) {
     }
 
     if (rateLimited(request))
-        return json(response, 429, {
+        return json(request, response, 429, {
             error: "Too many requests"
         });
 
@@ -177,7 +183,7 @@ async function handle(request, response, url) {
         request.method === "GET" &&
         url.pathname === "/api/ice"
     ) {
-        return json(response, 200, {
+        return json(request, response, 200, {
             iceServers: iceServers()
         });
     }
@@ -186,7 +192,7 @@ async function handle(request, response, url) {
         request.method === "POST" &&
         url.pathname === "/api/session"
     ) {
-        return json(response, 201, {
+        return json(request, response, 201, {
             token: create()
         });
     }
@@ -196,7 +202,7 @@ async function handle(request, response, url) {
     );
 
     if (!match)
-        return json(response, 404, {
+        return json(request, response, 404, {
             error: "Not found"
         });
 
@@ -210,16 +216,16 @@ async function handle(request, response, url) {
         const result = join(id);
 
         if (result === null)
-            return json(response, 404, {
+            return json(request, response, 404, {
                 error: "Session not found"
             });
 
         if (result === false)
-            return json(response, 409, {
+            return json(request, response, 409, {
                 error: "Session is full"
             });
 
-        return json(response, 200, {
+        return json(request, response, 200, {
             role: "guest"
         });
     }
@@ -234,7 +240,7 @@ async function handle(request, response, url) {
         if (
             !["host", "guest"].includes(participantRole)
         ) {
-            return json(response, 400, {
+            return json(request, response, 400, {
                 error: "Invalid participant"
             });
         }
@@ -242,11 +248,11 @@ async function handle(request, response, url) {
         const result = status(id, participantRole);
 
         if (!result)
-            return json(response, 404, {
+            return json(request, response, 404, {
                 error: "Session not found"
             });
 
-        return json(response, 200, result);
+        return json(request, response, 200, result);
     }
 
     if (
@@ -257,7 +263,7 @@ async function handle(request, response, url) {
             const data = await body(request);
 
             if (!["host", "guest"].includes(data.from))
-                return json(response, 400, {
+                return json(request, response, 400, {
                     error: "Invalid participant"
                 });
 
@@ -266,7 +272,7 @@ async function handle(request, response, url) {
                 data.type !== "answer" &&
                 data.type !== "candidates"
             ) {
-                return json(response, 400, {
+                return json(request, response, 400, {
                     error: "Invalid signal"
                 });
             }
@@ -275,7 +281,7 @@ async function handle(request, response, url) {
                 data.type === "candidates" &&
                 !Array.isArray(data.data)
             ) {
-                return json(response, 400, {
+                return json(request, response, 400, {
                     error: "Invalid candidates"
                 });
             }
@@ -286,14 +292,14 @@ async function handle(request, response, url) {
                     data: data.data
                 })
             ) {
-                return json(response, 404, {
+                return json(request, response, 404, {
                     error: "Session not found"
                 });
             }
 
-            return json(response, 204, {});
+            return json(request, response, 204, {});
         } catch {
-            return json(response, 400, {
+            return json(request, response, 400, {
                 error: "Invalid request"
             });
         }
@@ -308,11 +314,11 @@ async function handle(request, response, url) {
 
             leave(id, data.role);
 
-            return json(response, 200, {
+            return json(request, response, 200, {
                 ok: true
             });
         } catch {
-            return json(response, 400, {
+            return json(request, response, 400, {
                 error: "Invalid request"
             });
         }
@@ -331,7 +337,7 @@ async function handle(request, response, url) {
         if (
             !["host", "guest"].includes(participantRole)
         ) {
-            return json(response, 400, {
+            return json(request, response, 400, {
                 error: "Invalid participant"
             });
         }
@@ -343,19 +349,19 @@ async function handle(request, response, url) {
         );
 
         if (!result)
-            return json(response, 404, {
+            return json(request, response, 404, {
                 error: "Session not found"
             });
 
-        return json(response, 200, result);
+        return json(request, response, 200, result);
     }
 
     if (get(id))
-        return json(response, 200, {
+        return json(request, response, 200, {
             ok: true
         });
 
-    return json(response, 404, {
+    return json(request, response, 404, {
         error: "Session not found"
     });
 }
